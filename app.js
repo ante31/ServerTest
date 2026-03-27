@@ -33,10 +33,12 @@ const server = http.createServer(app);
 const { Server } = require('socket.io');
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: '*', // Možeš ostaviti '*', ali provjeri da se podudara s klijentom
     methods: ['GET', 'POST'],
+    credentials: true
   },
-  transports: ['websocket'],
+  allowEIO3: true, // Dodaj ovo za kompatibilnost sa starijim klijentima
+  transports: ['polling', 'websocket'], // REDOSLIJED JE KLJUČAN: prvo polling, onda upgrade
 });
 
 // Middleware
