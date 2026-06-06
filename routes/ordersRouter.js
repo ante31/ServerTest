@@ -24,6 +24,7 @@ orderRouter.get('/', async (req, res) => {
 
 orderRouter.post('/', async (req, res) => {
   try {    
+    console.log("NEW ORDER INCOMING");
     // Extract and format date from time
     const time = new Date(req.body.time);
     time.setMinutes(time.getMinutes() + time.getTimezoneOffset()); // Convert UTC to local

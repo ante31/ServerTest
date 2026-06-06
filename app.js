@@ -64,9 +64,9 @@ app.use('/annotations', annotationsRouter);
 app.use('/loyalty', loyaltyRouter);
 
 
-generalSocket(io, database);
-ordersSocket(io, database);
-frontendStatusSocket(io, database);
+// generalSocket(io, database);
+// ordersSocket(io, database);
+// frontendStatusSocket(io, database);
 
 // Pokretanje servera
 const port = process.env.PORT || 3000;
