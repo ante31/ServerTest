@@ -2,7 +2,7 @@ const { initializeApp, getApps } = require('firebase/app');
 const { getDatabase } = require('firebase/database');
 require('dotenv').config();
 
-const isTest = true;
+const isTest = false;
 
 const firebaseConfig = isTest
   ? {
