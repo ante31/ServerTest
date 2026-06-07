@@ -27,6 +27,7 @@ orderRouter.post('/', async (req, res) => {
     console.log("NEW ORDER INCOMING");
     
     const { idempotencyKey, time: orderTime } = req.body;
+    console.log("idempotencyKey:", idempotencyKey);
     const time = new Date(orderTime);
     time.setMinutes(time.getMinutes() + time.getTimezoneOffset()); 
     const year = time.getFullYear();
