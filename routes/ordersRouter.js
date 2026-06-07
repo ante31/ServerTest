@@ -25,23 +25,31 @@ orderRouter.get('/', async (req, res) => {
 orderRouter.post('/', async (req, res) => {
   try {    
     console.log("NEW ORDER INCOMING");
-    // Extract and format date from time
+    
     const time = new Date(req.body.time);
-    time.setMinutes(time.getMinutes() + time.getTimezoneOffset()); // Convert UTC to local
+    time.setMinutes(time.getMinutes() + time.getTimezoneOffset()); 
     const year = time.getFullYear();
     const month = String(time.getMonth() + 1).padStart(2, '0');
     const day = String(time.getDate()).padStart(2, '0');
 
-    // Reference the order location in the database
     const reference = ref(database, `Orders/${year}/${month}/${day}`);
     const newOrderRef = push(reference);
     
     await set(newOrderRef, req.body);
 
-    res.status(201).json({ id: newOrderRef.key });
+    // FIX: Eksplicitno zatvaranje mrežnog toka za React Native
+    res.status(201);
+    res.set({
+      'Content-Type': 'application/json',
+      'Connection': 'keep-alive' // Prisiljava stabilan završetak u handshakeu
+    });
+    return res.send(JSON.stringify({ id: newOrderRef.key }));
+
   } catch (error) {
     console.error('Error creating order:', error);
-    res.status(500).send('Failed to create order');
+    if (!res.headersSent) {
+      return res.status(500).send('Failed to create order');
+    }
   }
 });
 
