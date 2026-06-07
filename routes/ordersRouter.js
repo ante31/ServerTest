@@ -1,5 +1,5 @@
 const express = require('express');
-const { ref, get, push, set, update, runTransaction } = require('firebase/database');
+const { ref, get, push, set, update, runTransaction, equalTo, orderByChild, query } = require('firebase/database');
 const database = require('../dbConnect');
 const { sendPushNotification } = require('../services/sendPushNotification');
 const { sendSMS } = require('../services/sendSMS');
@@ -26,22 +26,38 @@ orderRouter.post('/', async (req, res) => {
   try {    
     console.log("NEW ORDER INCOMING");
     
-    const time = new Date(req.body.time);
+    const { idempotencyKey, time: orderTime } = req.body;
+    const time = new Date(orderTime);
     time.setMinutes(time.getMinutes() + time.getTimezoneOffset()); 
     const year = time.getFullYear();
     const month = String(time.getMonth() + 1).padStart(2, '0');
     const day = String(time.getDate()).padStart(2, '0');
 
     const reference = ref(database, `Orders/${year}/${month}/${day}`);
+
+    // 1. ZAŠTITA OD DUPLANJA: Ako postoji ključ, provjeri bazu za taj dan
+    if (idempotencyKey) {
+      const duplikatQuery = query(reference, orderByChild('idempotencyKey'), equalTo(idempotencyKey));
+      const snapshot = await get(duplikatQuery);
+      
+      if (snapshot.exists()) {
+        const postojeceNarudzbe = snapshot.val();
+        const postojeciId = Object.keys(postojeceNarudzbe)[0];
+        console.log(`Pronađena postojeća narudžba za ključ ${idempotencyKey}. Vraćam stari ID: ${postojeciId}`);
+        
+        res.status(200).set({ 'Content-Type': 'application/json' });
+        return res.send(JSON.stringify({ id: postojeciId }));
+      }
+    }
+
+    // 2. Ako ne postoji, generiraj novu narudžbu
     const newOrderRef = push(reference);
-    
     await set(newOrderRef, req.body);
 
-    // FIX: Eksplicitno zatvaranje mrežnog toka za React Native
-    res.status(201);
-    res.set({
+    // 3. Slanje odgovora natrag klijentu
+    res.status(201).set({
       'Content-Type': 'application/json',
-      'Connection': 'keep-alive' // Prisiljava stabilan završetak u handshakeu
+      'Connection': 'close' // 'close' je sigurniji za mobilni prvi zahtjev jer odmah javlja mobitelu da je gotovo
     });
     return res.send(JSON.stringify({ id: newOrderRef.key }));
 
