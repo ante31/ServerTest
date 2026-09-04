@@ -25,7 +25,7 @@ function frontendStatusSocket(io) {
 
       if (!activeFrontend) {
         activeFrontend = { socketId: socket.id, lastHeartbeat: Date.now(), timeoutHandle: null };
-        sendSMS("0958138612", "Frontend je aktivan!", data.timestamp);
+        //sendSMS("0958138612", "Frontend je aktivan!", data.timestamp);
       } else {
         activeFrontend.socketId = socket.id;
         activeFrontend.lastHeartbeat = Date.now();
@@ -55,7 +55,7 @@ function frontendStatusSocket(io) {
       if (activeFrontend && activeFrontend.socketId === socket.id) {
         if (activeFrontend.timeoutHandle) clearTimeout(activeFrontend.timeoutHandle);
         activeFrontend = null;
-        sendSMS("0958138612", "Frontend je zatvoren!", data.timestamp);
+        //sendSMS("0958138612", "Frontend je zatvoren!", data.timestamp);
       }
     });
 
